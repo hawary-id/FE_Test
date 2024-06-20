@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { IoTrashOutline } from 'react-icons/io5';
 import { Button } from './ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { useState } from 'react';
 
 interface IDeleteButtonProps {
     url: string;
@@ -11,22 +12,22 @@ interface IDeleteButtonProps {
 
 export default function DeleteButton({url}: IDeleteButtonProps) {
     const router = useRouter();
+    const [isOpen, setIsOpen] = useState(false);
     const onDelete = async () => {
-        const token = localStorage.getItem("token");  
+        const token = localStorage.getItem("token");
         try {
-          const response = await fetch(
-            url,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-  
+          const response = await fetch(url, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+    
           if (response.ok) {
             console.log("Data deleted successfully");
-            router.push('/master-data');
+            // Close the dialog after successful deletion
+            setIsOpen(false);
+            router.refresh(); // This will trigger a full page reload
           } else {
             const errorData = await response.json();
             console.error("Failed to delete data:", errorData);
@@ -37,7 +38,7 @@ export default function DeleteButton({url}: IDeleteButtonProps) {
       };
 
    return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger asChild>
       <Button size="icon" variant="destructive"><IoTrashOutline className="text-lg"/></Button>
     </DialogTrigger>
