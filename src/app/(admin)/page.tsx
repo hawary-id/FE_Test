@@ -130,11 +130,11 @@ export default function DashboardPage() {
    return (
        <div>
            <Title className="mb-3">Dashboard</Title>
-            <div className="flex gap-5 mb-8">
-                <Card className='w-3/4 p-6'>
+            <div className="flex flex-col md:flex-row gap-5 mb-8">
+                <Card className='w-full md:w-3/4 p-6'>
                     <ChartBar data={unitData}/>
                 </Card>
-                <Card className='w-1/4 p-6'>
+                <Card className='w-full md:w-1/4 p-6'>
                     <ChartPie data={unitData}/>
                 </Card>
             </div>

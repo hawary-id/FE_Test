@@ -11,6 +11,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { roadFormSchema } from '@/lib/form-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useParams, useRouter } from "next/navigation";
@@ -25,112 +26,160 @@ interface Unit {
 }
 
 export default function EditPage() {
-  const router = useRouter();
-  const params = useParams();
-  const id = params.id as string; // Ensure id is treated as a string
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [ruasData, setRuasData] = useState<z.infer<typeof roadFormSchema> | null>(null);
+    const {toast} = useToast();
+    const router = useRouter();
+    const params = useParams();
+    const id = params.id;
+    const [units, setUnits] = useState<Unit[]>([]);
+    const [ruasData, setRuasData] = useState<z.infer<typeof roadFormSchema> | null>(null);  
+    const form = useForm<z.infer<typeof roadFormSchema>>({
+        resolver: zodResolver(roadFormSchema),
+        defaultValues: {}
+    });
 
-  const form = useForm<z.infer<typeof roadFormSchema>>({
-    resolver: zodResolver(roadFormSchema),
-    defaultValues: {},
-  });
-
-      useEffect(() => {
-          const fetchData = async () => {
-              try {
-                  const token = localStorage.getItem("token");
-                  if (!token) {
-                      router.replace("/signin");
-                      return;
-                  }
-
-                  const unitResponse = await fetch("http://localhost:8004/api/unit", {
-                      headers: {
-                          Authorization: `Bearer ${token}`,
-                          "Content-Type": "application/json",
-                      },
-                  });
-
-                  const ruasResponse = await fetch(
-                      `http://localhost:8004/api/ruas/${id}`,
-                      {
-                          headers: {
-                              Authorization: `Bearer ${token}`,
-                              "Content-Type": "application/json",
-                          },
-                      }
-                  );
-
-                  if (unitResponse.ok) {
-                      const unitData = await unitResponse.json();
-                      setUnits(unitData.data);
-                  }
-
-                  if (ruasResponse.ok) {
-                      const ruasData = await ruasResponse.json();
-                      setRuasData(ruasData.data);
-
-                      // Update form values directly
-                      form.reset({
-                          unit_id: ruasData.data.unit_id.toString(),
-                          ruas_name: ruasData.data.ruas_name,
-                          long: ruasData.data.long.toString(),
-                          km_awal: ruasData.data.km_awal,
-                          km_akhir: ruasData.data.km_akhir,
-                          status: ruasData.data.status.toString(),
-                      });
-                  }
-              } catch (error) {
-                  console.error("An error occurred:", error);
-              }
-          };
-
-          fetchData();
-      }, [id, form]);
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+              router.replace('/signin');
+              return;
+            }
     
-      const onSubmit = async (val: z.infer<typeof roadFormSchema>) => {
-        const token = localStorage.getItem('token');
+            // Ambil Data Units dan Ruas secara paralel
+            const [unitResponse, ruasResponse] = await Promise.all([
+              fetch(`http://localhost:8004/api/unit`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }),
+              fetch(`http://localhost:8004/api/ruas/${id}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }),
+            ]);
+    
+            if (unitResponse.ok) {
+              const unitData = await unitResponse.json();
+              setUnits(unitData.data);
+            }
+    
+            if (ruasResponse.ok) {
+              const ruasData = await ruasResponse.json();
+
+              const formattedRuasData = {
+                unit_id: ruasData.data.unit_id.toString(),
+                ruas_name: ruasData.data.ruas_name,
+                status: ruasData.data.status.toString(),
+                long: ruasData.data.long.toString(),
+                km_awal: ruasData.data.km_awal,
+                km_akhir: ruasData.data.km_akhir,
+                photo: ruasData.data.photo,
+              };
+
+              setRuasData((prevRuasData:any) => ({
+                ...prevRuasData,
+                id: ruasData.data.id.toStr,
+                unit_id: ruasData.data.unit_id.toString(),
+                ruas_name: ruasData.data.ruas_name,
+                long: ruasData.data.long,
+                km_awal: ruasData.data.km_awal,
+                km_akhir: ruasData.data.km_akhir,
+                status: ruasData.data.status.toString(),
+                photo: ruasData.data.photo,
+              }));
+              form.reset(formattedRuasData);
+            } 
+          } catch (error) {
+            console.error("An error occurred:", error);
+          } 
+        };
+    
+        fetchData();
+      }, [id]);
+    
+      const onSubmit = async (data: any) => {
+        const token = localStorage.getItem("token");
         if (!token) {
-          router.replace('/signin');
-          return;
+            router.replace("/signin");
+            return;
         }
-      
+    
         try {
-          const formData = new FormData();
-          formData.append('unit_id', val.unit_id);
-          formData.append('ruas_name', val.ruas_name);
-          formData.append('long', parseInt(val.long, 10).toString());
-          formData.append('km_awal', val.km_awal);
-          formData.append('km_akhir', val.km_akhir);
-          formData.append('status', val.status)
-          // Hanya append foto baru jika ada
-          if (val.photo) {
-            formData.append('photo', val.photo);
-          }
-          // Hanya append file baru jika ada
-          if (val.file) {
-            formData.append('file', val.file);
-          }
-          const response = await fetch(`http://localhost:8004/api/ruas/${id}`, {
-            method: 'PUT',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
-          });
-      
-          if (response.ok) {
-            console.log('Data updated successfully');
-            router.push('/master-data');
-          } else {
-            const errorData = await response.json();
-            console.error('Failed to update data:', errorData);
-          }
+            const formData = new FormData();
+            formData.append("unit_id", data.unit_id);
+            formData.append("ruas_name", data.ruas_name);
+            formData.append("long", data.long); 
+            formData.append("km_awal", data.km_awal);
+            formData.append("km_akhir", data.km_akhir);
+            formData.append("status", data.status);
+    
+            if (data.photo) formData.append("photo", data.photo[0]); 
+            if (data.file) formData.append("file", data.file[0]);
+    
+            const response = await fetch(`http://localhost:8004/api/ruas/${id}`, {
+                method: "PUT", // Use PUT for updating
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+    
+            if (response.ok) {
+                toast({
+                    title: "Success",
+                    description: "Data updated successfully",
+                });
+                // Slight delay to ensure toast is displayed before navigating
+                setTimeout(() => router.push("/master-data"), 500); 
+            } else {
+                const errorData = await response.json();
+                console.error("Failed to update data:", errorData);
+    
+                // Enhanced Error Handling
+                if (errorData.message && Array.isArray(errorData.message)) {
+                    errorData.message.forEach((errorMessage:any) => {
+                        const fieldMatch = errorMessage.match(
+                            /The (.+) field is required\./
+                        );
+                        if (fieldMatch) {
+                            const fieldName = fieldMatch[1]
+                                .toLowerCase()
+                                .replace(" ", "_");
+                            form.setError(fieldName, {
+                                type: "manual",
+                                message: errorMessage,
+                            });
+                        } else {
+                            toast({
+                                title: "Error",
+                                description: errorMessage, // Display the specific message
+                                variant: "destructive",
+                            });
+                        }
+                    });
+                } else {
+                    // Generic error message if the format is unexpected
+                    toast({
+                        title: "Error",
+                        description:
+                            "Failed to update data. Please check the form and try again.",
+                        variant: "destructive",
+                    });
+                }
+            }
         } catch (error) {
-          console.error('An error occurred:', error);
+            console.error("An error occurred:", error);
+            toast({
+                title: "Error",
+                description: "An unexpected error occurred.",
+                variant: "destructive",
+            });
         }
-      };
+    };
  
     const handleCancelClick = () => {
         router.push('/master-data');

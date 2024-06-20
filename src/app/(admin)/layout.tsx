@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Inter } from "next/font/google";
 import "../globals.css";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 export default function RootLayout({
@@ -20,9 +21,7 @@ export default function RootLayout({
             <div className="w-full container mx-auto py-5 grow">
               {children}
             </div>
-            <div className="w-full bg-white py-2 px-5 flex l text-sm font-light text-gray-700">
-              Copyright
-            </div>
+           <Footer/>
           </main>
         </AuthProvider>
       </body>
