@@ -20,6 +20,6 @@ export const roadFormSchema = z.object({
 })
 
 export const signInFormSchema = z.object({
-    username: z.string({required_error: 'username harus dipilih'}),
+    username: z.string({required_error: 'username harus diisi'}),
     password: z.string({required_error: 'Password harus diisi'}),
 })
