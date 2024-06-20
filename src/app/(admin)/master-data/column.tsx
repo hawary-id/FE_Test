@@ -1,9 +1,11 @@
 "use client"
 
+import DeleteButton from "@/components/DeleteButton"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { BsPencilFill } from "react-icons/bs"
 import { FaDownload } from "react-icons/fa6"
 import { IoEye, IoTrashOutline } from "react-icons/io5"
@@ -76,10 +78,12 @@ export const columns: ColumnDef<Road>[] = [
   },
 
   {
-    accessorKey: "dokumen",
+    accessorKey: "doc_url",
     header: "Dokumen",
     cell: ({ row }) => (
-      <Button className="bg-gray-500 hover:bg-gray-600"><FaDownload className="mr-2 text-xl" />Download</Button>
+      <Button className="bg-gray-500 hover:bg-gray-600" asChild>
+        <Link href={row.original.doc_url} target="_BLANK"><FaDownload className="mr-2 text-xl"/>Download</Link>
+      </Button>
     ),
   },
   {
@@ -93,48 +97,29 @@ export const columns: ColumnDef<Road>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <div className="">{row.getValue('status') ? 'Aktif':'Tidak Aktif'}</div>
+      <div className="">
+        {row.original.status === "1" ? 'Aktif' : 'Tidak Aktif'} 
+      </div>
     ),
   },
-  {
-    id: "actions",
-    accessorKey: "actions",
-    header: "Aksi",
-    enableHiding: false,
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center gap-3">
-          <Button size="icon" className="bg-yellow-500 hover:bg-yellow-600" asChild>
-            <Link href={`/master-data/edit/${row.id}`}><BsPencilFill className="text-lg"/></Link>
-          </Button>
-          <Button size="icon" className="bg-emerald-500 hover:bg-emerald-600" asChild>
-            <Link href={`/master-data/show/${row.id}`}><IoEye className="text-lg"/></Link>
-          </Button>
-          <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="destructive"><IoTrashOutline className="text-lg"/></Button>
-          </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Apakah kamu yakin ingin menghapus data ini?</DialogTitle>
-                <DialogDescription>
-                  Tindakan ini tidak bisa dibatalkan. Ini akan menghapus data secara permanen dari server.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary">
-                    Batal
-                  </Button>
-                </DialogClose>
-                <Button variant="destructive" asChild>Ya, Hapus</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          
-        </div>
-      )
-    },
+  
+    {
+      id: "actions",
+      accessorKey: "actions",
+      header: "Aksi",
+      enableHiding: false,
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-3">
+            <Button size="icon" className="bg-yellow-500 hover:bg-yellow-600" asChild>
+              <Link href={`/master-data/edit/${row.original.id}`}><BsPencilFill className="text-lg"/></Link>
+            </Button>
+            <Button size="icon" className="bg-emerald-500 hover:bg-emerald-600" asChild>
+              <Link href={`/master-data/show/${row.original.id}`}><IoEye className="text-lg"/></Link>
+            </Button>
+            <DeleteButton url={`http://localhost:8004/api/ruas/${row.original.id}`}/>
+          </div>
+        )
+      },
   },
 ]

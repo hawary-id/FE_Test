@@ -4,25 +4,16 @@ import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface DataItem {
   name: string;
-  value: number;
+  unit: number;
 }
 
-const data: DataItem[] = [
-    { name: 'Group A', value: 400 },
-    { name: 'Group B', value: 300 },
-    { name: 'Group C', value: 300 },
-    { name: 'Group D', value: 200 },
-    { name: 'Group E', value: 278 },
-    { name: 'Group F', value: 189 },
-];
-
-const ChartPie: React.FC = () => {
+const ChartPie: React.FC<{ data: DataItem[] }> = ({ data }) => {
   return (
     <div style={{ width: '100%', height: 300 }}>
       <ResponsiveContainer>
         <PieChart width={400} height={400}>
           <Pie
-            dataKey="value"
+            dataKey="unit"
             isAnimationActive={false}
             data={data}
             cx="50%"

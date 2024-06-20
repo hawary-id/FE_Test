@@ -3,204 +3,131 @@ import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
-    CardTitle,
+    CardTitle
 } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/contexts/AuthContext";
-import { roadFormSchema } from '@/lib/form-schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from "next/navigation";
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-  
-export default function ShowPage() {
-    const { token } = useAuth();
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface RuasProps {
+    id: string;
+    ruas_name: string;
+    unit_id: string;
+    unit: string;
+    long: string;
+    km_awal: string;
+    km_akhir: string;
+    status: string;
+    photo: string;
+}
+
+export default function EditPage() {
     const router = useRouter();
+    const params = useParams();
+    const id = params.id;
+    const [ruasData, setRuasData] = useState<RuasProps>();  
 
-    if (!token) {
-        router.replace('/signin');
-        return null;
-    }
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+              router.replace('/signin');
+              return;
+            }
     
-    const form = useForm<z.infer<typeof roadFormSchema>>({
-        resolver: zodResolver(roadFormSchema),
-    })
+            // Ambil Data Units dan Ruas secara paralel
+            const [ruasResponse] = await Promise.all([
+              fetch(`http://localhost:8004/api/ruas/${id}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }),
+            ]);
+    
+            if (ruasResponse.ok) {
+              const ruasData = await ruasResponse.json();
 
-    const onSubmit = (val: z.infer<typeof roadFormSchema>) => {
-        console.log(val);
-    }
-
+              setRuasData((prevRuasData:any) => ({
+                ...prevRuasData,
+                id: ruasData.data.id,
+                unit_id: ruasData.data.unit_id.toString(),
+                unit: ruasData.data.unit.unit,
+                ruas_name: ruasData.data.ruas_name,
+                long: ruasData.data.long,
+                km_awal: ruasData.data.km_awal,
+                km_akhir: ruasData.data.km_akhir,
+                status: ruasData.data.status.toString(),
+                photo: ruasData.data.photo_url,
+              }));
+            } 
+          } catch (error) {
+            console.error("An error occurred:", error);
+          } 
+        };
+    
+        fetchData();
+      }, [id]);
+ 
     const handleCancelClick = () => {
         router.push('/master-data');
     };
 
+    console.log(ruasData)
+
     return (
         <div className="w-full flex justify-center">
-            <Card className="w-1/2">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <Card className="w-full md:w-1/2">
+            <form className="space-y-8">
                         <CardHeader>
-                            <CardTitle>Lihat Data Ruas</CardTitle>
-                            <CardDescription>Card Description</CardDescription>
+                            <CardTitle>Data Ruas : {ruasData?.ruas_name}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="mb-5 w-1/2">
-                                <FormField
-                                    control={form.control}
-                                    name="unit_id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Pilih Unit</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih Unit" />
-                                                </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                <SelectItem value="m@example.com">m@example.com</SelectItem>
-                                                <SelectItem value="m@google.com">m@google.com</SelectItem>
-                                                <SelectItem value="m@support.com">m@support.com</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                            <img src={ruasData?.photo} alt=""  className="w-full mb-5"/>
+                            <div className="grid grid-cols-2 w-full mb-5 gap-5">
+                                <div className="">
+                                    <Label>Nama Ruas</Label>
+                                    <Input placeholder="Nama Ruas" readOnly className="w-full bg-gray-100" value={ruasData?.ruas_name ||''} />
+                                </div>
+                                <div className="">
+                                    <Label>Unit Kerja</Label>
+                                    <Input placeholder="Unit Kerja" readOnly className="w-full bg-gray-100" value={ruasData?.unit ||''} />
+                                </div>                            
                             </div>
-                            <div className="mb-5">
-                                <FormField
-                                    control={form.control}
-                                    name="ruas_name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nama Ruas</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Nama Ruas" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
+                            <div className="grid grid-cols-2 w-full mb-5 gap-5">
+                                <div className="">
+                                    <Label>Panjang</Label>
+                                    <Input placeholder="Panjang" readOnly className="w-full bg-gray-100" value={ruasData?.long ||''} />
+                                </div>
+                                <div className="">
+                                    <Label>Status</Label>
+                                    <Input placeholder="Status" readOnly className="w-full bg-gray-100" value={ruasData?.status === '1' ? 'Aktif' : 'Tidak Aktif'} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 w-full mb-5 gap-5">
+                                <div className="w-full">
+                                    <Label>KM Awal</Label>
+                                    <Input placeholder="KM Awal" readOnly className="w-full bg-gray-100" value={ruasData?.km_awal ||''} />
+                                </div>
+                                <div className="w-full">
+                                    <Label>KM Akhir</Label>
+                                    <Input placeholder="KM Akhir" readOnly className="w-full bg-gray-100" value={ruasData?.km_akhir ||''} />
+                                </div>
                             </div>
                             
-                            <div className="mb-5">
-                                <FormField
-                                    control={form.control}
-                                    name="long"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Panjang Ruas</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="Panjang Ruas" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                            </div>
-
-                            <div className="flex gap-5 mb-5">
-                                <div className="w-1/2">
-                                    <FormField
-                                        control={form.control}
-                                        name="km_awal"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>KM Awal</FormLabel>
-                                            <FormControl>
-                                                <Input  placeholder="KM Awal" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                </div>
-                                <div className="w-1/2">
-                                    <FormField
-                                        control={form.control}
-                                        name="km_akhir"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>KM Akhir</FormLabel>
-                                            <FormControl>
-                                                <Input  placeholder="KM Akhir" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                </div>
-                            </div>
-                            <div className="mb-5 w-1/2">
-                                <FormField
-                                    control={form.control}
-                                    name="status"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Status</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih Status" />
-                                                </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                <SelectItem value="0">Non Aktif</SelectItem>
-                                                <SelectItem value="1">Aktif</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                           <div className="flex gap-5">
-                                <div className="w-1/2">
-                                    <FormField
-                                        control={form.control}
-                                        name="photo"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Photo</FormLabel>
-                                            <FormControl>
-                                                <Input type="file" placeholder="Photo" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                </div>
-                                <div className="w-1/2">
-                                    <FormField
-                                        control={form.control}
-                                        name="file"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Dokumen</FormLabel>
-                                            <FormControl>
-                                                <Input type="file" placeholder="Dokumen" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                </div>
-                           </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-3">
                             <Button variant="outline" type="button" onClick={handleCancelClick}>
-                                Batal
+                                Tutup
                             </Button>
-                            <Button type="submit">Simpan</Button>
                         </CardFooter>
                     </form>
-                </Form>
             </Card>
         </div>
   

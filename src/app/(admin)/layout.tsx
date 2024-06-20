@@ -15,10 +15,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <main className="w-full bg-gray-100 min-h-screen">
+          <main className="w-full bg-gray-100 flex flex-col justify-between min-h-screen">
             <Navbar/>
-            <div className="w-full container mx-auto py-10">
+            <div className="w-full container mx-auto py-5 grow">
               {children}
+            </div>
+            <div className="w-full bg-white py-2 px-5 flex l text-sm font-light text-gray-700">
+              Copyright
             </div>
           </main>
         </AuthProvider>

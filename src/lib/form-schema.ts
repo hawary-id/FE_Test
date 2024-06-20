@@ -7,8 +7,16 @@ export const roadFormSchema = z.object({
     km_awal: z.string({required_error: 'KM awal harus diisi'}),
     km_akhir: z.string({required_error: 'KM akhir harus diisi'}),
     status: z.string({required_error: 'Status harus diisi'}),
-    photo: z.string({required_error: 'Foto harus diisi'}),
-    file: z.string({required_error: 'Dokumen harus diisi'}),
+    photo: z.instanceof(File).refine((file) => file.size <= 2 * 1024 * 1024, {
+      message: "Ukuran file harus maksimal 2MB",
+    }).refine((file) => file !== undefined, {
+      message: "Foto harus diunggah",
+    }),
+    file: z.instanceof(File).refine((file) => file.size <= 2 * 1024 * 1024, {
+        message: "Ukuran file harus maksimal 2MB",
+      }).refine((file) => file !== undefined, {
+        message: "Dokumen harus diunggah",
+      }),
 })
 
 export const signInFormSchema = z.object({

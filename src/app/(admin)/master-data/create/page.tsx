@@ -76,8 +76,8 @@ export default function CreatePage() {
             formData.append('km_awal', val.km_awal);
             formData.append('km_akhir', val.km_akhir);
             formData.append('status', val.status);
-            formData.append('photo', val.photo[0]);
-            formData.append('file', val.file[0]);
+            formData.append('photo', val.photo);
+            formData.append('file', val.file);
 
             const response = await fetch('http://localhost:8004/api/ruas', {
                 method: 'POST',
@@ -98,7 +98,6 @@ export default function CreatePage() {
             console.error('An error occurred:', error);
         }
     }
-
  
     const handleCancelClick = () => {
         router.push('/master-data');
@@ -129,7 +128,7 @@ export default function CreatePage() {
                                                 </FormControl>
                                                 <SelectContent>
                                                     {units.map((item,i) => (
-                                                        <SelectItem value={item.id} key={i}>{item.unit}</SelectItem>
+                                                        <SelectItem value={item.id.toString()} key={i}>{item.unit}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -230,31 +229,41 @@ export default function CreatePage() {
                                     <FormField
                                         control={form.control}
                                         name="photo"
-                                        render={({ field }) => (
+                                        render={({ field: { onChange, onBlur, value, ref } }) => (
                                             <FormItem>
                                             <FormLabel>Photo</FormLabel>
                                             <FormControl>
-                                                <Input type="file" placeholder="Photo" {...field} />
+                                            <Input
+                                                type="file"
+                                                placeholder="Photo"
+                                                onChange={(e) => onChange(e.target.files?.[0])}
+                                                onBlur={onBlur}
+                                                ref={ref} />
                                             </FormControl>
                                             <FormMessage />
                                             </FormItem>
                                         )}
-                                        />
+                                    />
                                 </div>
                                 <div className="w-1/2">
                                     <FormField
                                         control={form.control}
                                         name="file"
-                                        render={({ field }) => (
+                                        render={({ field: { onChange, onBlur, value, ref } }) => (
                                             <FormItem>
-                                            <FormLabel>Dokumen</FormLabel>
+                                            <FormLabel>Photo</FormLabel>
                                             <FormControl>
-                                                <Input type="file" placeholder="Dokumen" {...field} />
+                                            <Input
+                                                type="file"
+                                                placeholder="Dokumen"
+                                                onChange={(e) => onChange(e.target.files?.[0])}
+                                                onBlur={onBlur}
+                                                ref={ref} />
                                             </FormControl>
                                             <FormMessage />
                                             </FormItem>
                                         )}
-                                        />
+                                    />
                                 </div>
                            </div>
                         </CardContent>

@@ -4,19 +4,24 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { BsPencilFill } from "react-icons/bs"
 import { FaDownload } from "react-icons/fa6"
 import { IoEye, IoTrashOutline } from "react-icons/io5"
 import { MdOutlinePhotoSizeSelectActual } from "react-icons/md"
 
 export type Road = {
-  id: string
-  ruas: string
-  lokasi: string
-  foto: string
-  dokumen: string
-  unit: string
-  status: boolean
+  id: number;
+  unit_id: number;
+  ruas_name: string;
+  long: number;
+  km_awal: string;
+  km_akhir: string;
+  photo_url: string;
+  doc_url: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const columns: ColumnDef<Road>[] = [
@@ -30,21 +35,21 @@ export const columns: ColumnDef<Road>[] = [
   },  
   
   {
-    accessorKey: "ruas",
+    accessorKey: "ruas_name",
     header: "Ruas",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("ruas")}</div>
+      <div className="capitalize">{row.getValue("ruas_name")}</div>
     ),
   },
   {
-    accessorKey: "lokasi",
+    accessorKey: "location",
     header: "Lokasi",
     cell: ({ row }) => (
-      <div className="">{row.getValue("lokasi")}</div>
+      <div className="">{row.original.km_awal} s/d {row.original.km_akhir}</div>
     ),
   },
   {
-    accessorKey: "foto",
+    accessorKey: "photo_url",
     header: "Foto",
     cell: ({ row }) => (
       <Dialog>
@@ -59,8 +64,8 @@ export const columns: ColumnDef<Road>[] = [
           <DialogHeader>
             <DialogTitle className="mb-3">Lihat Foto</DialogTitle>
             <DialogDescription>
-              {row.getValue('foto') ? (
-                <img src={row.getValue('foto')} alt="" className="w-full"/>
+              {row.getValue('photo_url') ? (
+                <img src={row.getValue('photo_url')} alt="" className="w-full"/>
               ):(
                 <img src="/illustration-no-photo.png" alt="" className="w-full"/>
               )}
@@ -72,10 +77,12 @@ export const columns: ColumnDef<Road>[] = [
   },
 
   {
-    accessorKey: "dokumen",
+    accessorKey: "doc_url",
     header: "Dokumen",
     cell: ({ row }) => (
-      <Button className="bg-gray-500 hover:bg-gray-600"><FaDownload className="mr-2 text-xl" />Download</Button>
+      <Button className="bg-gray-500 hover:bg-gray-600" asChild>
+        <Link href={row.original.doc_url} target="_BLANK"><FaDownload className="mr-2 text-xl"/>Download</Link>
+      </Button>
     ),
   },
   {
@@ -89,7 +96,9 @@ export const columns: ColumnDef<Road>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <div className="">{row.getValue('status') ? 'Aktif':'Tidak Aktif'}</div>
+      <div className="">
+        {row.original.status === "1" ? 'Aktif' : 'Tidak Aktif'} 
+      </div>
     ),
   },
 ]
