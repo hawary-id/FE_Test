@@ -11,6 +11,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { roadFormSchema } from '@/lib/form-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ interface Unit {
 }
 
 export default function CreatePage() {
+    const { toast } = useToast();
     const router = useRouter();
     const [units, setUnits] = useState<Unit[]>([]);
 
@@ -88,8 +90,13 @@ export default function CreatePage() {
             });
 
             if (response.ok) {
-                console.log('Data submitted successfully');
-                router.push('/master-data');
+                toast({
+                    title: "Success",
+                    description: "Successfully created",
+                });
+                setTimeout(() => {
+                    router.push("/master-data");
+                }, 500); 
             } else {
                 const errorData = await response.json();
                 console.error('Failed to submit data:', errorData);
@@ -251,7 +258,7 @@ export default function CreatePage() {
                                         name="file"
                                         render={({ field: { onChange, onBlur, value, ref } }) => (
                                             <FormItem>
-                                            <FormLabel>Photo</FormLabel>
+                                            <FormLabel>Dokumen</FormLabel>
                                             <FormControl>
                                             <Input
                                                 type="file"
