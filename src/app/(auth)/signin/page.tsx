@@ -48,6 +48,9 @@ export default function SignInPage() {
    return (
        <div className='flex items-center'>
             <div className="w-full md:w-1/2 bg-white h-screen py-5 md:py-10 px-5 md:px-44 flex flex-col justify-center">
+                <div className="flex justify-center mb-3">
+                    <img src='/logo-jm.png' className='h-16 w-fit'/>
+                </div>
                 <h1 className="text-2xl font-bold mb-3 text-center text-primary">Login Account</h1>
                 <p className="text-gray-500 mb-12 text-center font-light text-sm">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Earum optio cum velit corrupti, ea a necessitatibus ullam unde quae fuga ad natus officiis debitis quis veritatis sed fugiat vero consectetur.</p>
                 <Form {...form}>
